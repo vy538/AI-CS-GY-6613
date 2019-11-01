@@ -19,21 +19,7 @@ import random
 import math
 
 
-class unit:
 
-    def __init__(self,actionList,score=None):
-        self.actionList = actionList
-        self.score = -999
-
-    def onlyPrintAction(self):
-        print "actionList: "+str(self.actionList)
-
-    def printActionScore(self):
-        print "actionList: "+str(self.actionList)+" : "+str(self.score)
-
-    def __str__(self):
-        str1 = "\tactionList: "+str(self.actionList)+"\n\tscore: "+str(self.score)
-        return str1
 
 class RandomAgent(Agent):
     # Initialization Function: Called one time when the game starts
@@ -134,6 +120,20 @@ class HillClimberAgent(Agent):
        
         return self.bestSeq["actions"][0]
 
+class unit:
+    _COUNTER = 0
+    def __init__(self,actionList,score=None,root = False):
+        if root:
+            Node._COUNTER = 0
+        self.actionList = actionList
+        self.score = -999
+        self.id = Node._COUNTER
+        Node._COUNTER += 1
+
+    def __str__(self):
+        str1 = str(self.id)+"\tactionList: "+str(self.actionList)+"\n\tscore: "+str(self.score)
+        return str1
+
 class GeneticAgent(Agent):
     # Initialization Function: Called one time when the game starts
     def registerInitialState(self, state):
@@ -154,7 +154,7 @@ class GeneticAgent(Agent):
             return pop
 
         def updateFitness(pop):
-            keepContinue = True
+           
             for i in range(0,8):
                 unit = pop[i]
                 acts = unit.actionList
@@ -165,11 +165,10 @@ class GeneticAgent(Agent):
                     else:
                         break
                     if tempState == None:
-                        keepContinue = False
+                        self.keepContinue = False
                         break     
                 
                 if tempState == None:
-                    # print "None!"
                     break
                 else:
                     score = gameEvaluation(state,tempState)
@@ -178,35 +177,38 @@ class GeneticAgent(Agent):
                         self.bestSeq = pop[i]
                         # print "best unit: "+ str(self.bestSeq)
                 # print "update unit: "+str(pop[i])
-            return pop,keepContinue
+            return pop
 
         def getUnitScore(unit):
             return unit.score
 
         def parentSelection(pop):
-            def grabParent(num):
-                if num <= 8:
-                    return pop[0]
-                if num <= 15:
-                    return pop[1]
-                if num <= 21:
-                    return pop[2]
-                if num <= 26:
-                    return pop[3]
-                if num <= 30:
-                    return pop[4]
-                if num <= 33:
-                    return pop[5]
-                if num <= 35:
-                    return pop[6]
-                else:
-                    return pop[7]
-            parent1 = grabParent(random.randint(1,36))
-            parent2 = grabParent(random.randint(1,36))
-            # while parent1 == parent2: #avoid same parent
-            #     parent2 = grabParent(random.randint(1,36))
+            weightedPool = []
+            repeated = 8
+            for p in pop:
+                j = repeated
+                while j > 0:
+                    weightedPool.append(p)
+                    j -= 1
+                repeated -= 1
+            # _p = None
+            # i = 0
+            # for p in weightedPool:
+            #     if _p == None:
+            #         _p = p
+            #         i = 1
+            #     elif _p != p:
+            #         print str(_p.id)+" : "+str(_p.score)+"_"+str(_p.actionList)+" repeat "+str(i)
+            #         _p = p
+            #         i = 1
+            #     else:
+            #         i +=1
+            # print str(_p.id)+" : "+str(_p.score)+"_"+str(_p.actionList)+" repeat "+str(i)
+            # print "\n"
+            parent1 = weightedPool[random.randint(0,35)]
+            parent2 = weightedPool[random.randint(0,35)]
             parents = [parent1,parent2]
-            # print "parent1: "+str(parent1)+"\nparent2: "+str(parent2)
+            # print "\nparent1: "+str(parent1)+"\nparent2: "+str(parent2)
             return parents
 
         def crossover(parents):
@@ -234,28 +236,33 @@ class GeneticAgent(Agent):
             indi.actionList = act
             return indi
 
-        # print "\n----------------------------new Step----------------------------"
-        self.possible = state.getAllPossibleActions()
-        self.bestSeq = unit([])
-        population = initPopulation([])
-        keepContinue = True
-        
-        while keepContinue:
-            # print "current best step: "+str(self.bestSeq)
-            population,keepContinue = updateFitness(population)
-            if not keepContinue:
-                break
-            population.sort(key=getUnitScore,reverse=True)
+        def generateNewPopulation(pop):
+            if not self.keepContinue:
+                return
+            pop.sort(key=getUnitScore,reverse=True)
             newPop = []
             while len(newPop)<8:
                 parents = parentSelection(population)
-                result = crossover(parents)
-                for indi in result:
+                results = crossover(parents)
+                for indi in results:
                     indi = multation(indi)
                     newPop.append(indi)
-            population = newPop
-        # print self.bestSeq.actionList[0]
-        return self.bestSeq.actionList[0]
+            return newPop
+
+
+        print "\n----------------------------new Step----------------------------"
+        self.possible = state.getAllPossibleActions()
+        self.bestSeq = unit([],True)
+        population = initPopulation([])
+        self.keepContinue = True
+        
+        while self.keepContinue:
+            population = updateFitness(population)
+            population = generateNewPopulation(population)
+
+        ansSeq = self.bestSeq.actionList
+        # print ansSeq
+        return ansSeq[0]
 
 class Node:
     _COUNTER = 0
