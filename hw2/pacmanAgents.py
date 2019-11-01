@@ -250,7 +250,7 @@ class GeneticAgent(Agent):
             return newPop
 
 
-        print "\n----------------------------new Step----------------------------"
+        # print "\n----------------------------new Step----------------------------"
         self.possible = state.getAllPossibleActions()
         self.bestSeq = unit([],True)
         population = initPopulation([])
