@@ -121,19 +121,20 @@ class HillClimberAgent(Agent):
             updateActionList()
         return self.bestSeq["actions"][0]
 
-class unit:
+class Chrome:
     _COUNTER = 0
     def __init__(self,actionList,score=None,root = False):
         if root:
-            Node._COUNTER = 0
+            Chrome._COUNTER = 0
         self.actionList = actionList
         self.score = -999
-        self.id = Node._COUNTER
-        Node._COUNTER += 1
+        self.rank = -1
+        self.id = Chrome._COUNTER
+        Chrome._COUNTER += 1
         # print(self)
 
     def __str__(self):
-        str1 = str(self.id)+"\tactionList: "+str(self.actionList)+"\n\tscore: "+str(self.score)
+        str1 = str(self.id)+"\tactionList: "+str(self.actionList)+"\n\tscore: "+str(self.score)+"\n\trank: "+str(self.rank)
         return str1
 
 class GeneticAgent(Agent):
@@ -150,7 +151,7 @@ class GeneticAgent(Agent):
                 acts = []
                 for j in range(0,5):
                     acts.append(self.possible[random.randint(0,len(self.possible)-1)])
-                newUnit = unit(acts)
+                newUnit = Chrome(acts)
                 pop.append(newUnit)
             return pop
 
@@ -177,15 +178,15 @@ class GeneticAgent(Agent):
 
         def parentSelection(pop):
             weightedPool = []
-            repeated = 8
+            highestRank = max([p.rank for p in pop])
             for p in pop:
-                j = repeated
+                j = highestRank - p.rank + 1
+                # print "add "+str(p.id)+" "+str(j)+" times"
                 while j > 0:
                     weightedPool.append(p)
                     j -= 1
-                repeated -= 1
-            parent1 = weightedPool[random.randint(0,35)]
-            parent2 = weightedPool[random.randint(0,35)]
+            parent1 = weightedPool[random.randint(0,len(weightedPool)-1)]
+            parent2 = weightedPool[random.randint(0,len(weightedPool)-1)]
             parents = [parent1,parent2]
             # print "\nparent1: "+str(parent1)+"\nparent2: "+str(parent2)
             return parents
@@ -194,7 +195,6 @@ class GeneticAgent(Agent):
             result = parents
             rand1 = random.randint(1,10)
             if rand1 > 7:
-                # print "keep both"
                 return result
             else:
                 for i in range(0,2):
@@ -202,8 +202,7 @@ class GeneticAgent(Agent):
                     for j in range(0,5):
                         rand2 = random.randint(1,10)%2
                         tempActions.append(parents[rand2].actionList[j])
-                    result[i] = unit(tempActions)
-                    # print "outcome "+str(i)+": "+str(result[i])
+                    result[i] = Chrome(tempActions)
             return result
 
         def multation(indi):
@@ -212,7 +211,7 @@ class GeneticAgent(Agent):
             if rand == 1:
                 randomPos = random.randint(0,len(act)-1)
                 act[randomPos] = self.possible[random.randint(0,len(self.possible)-1)]
-            indi.actionList = act
+            indi.actionList = act[:]
             return indi
 
         def generateNewPopulation(pop):
@@ -225,7 +224,6 @@ class GeneticAgent(Agent):
                 for indi in results:
                     indi = multation(indi)
                     newPop.append(indi)
-            # print newPop[7]
             return newPop
 
         def updateCurrentBest(pop):
@@ -235,10 +233,23 @@ class GeneticAgent(Agent):
             self.bestSeq = pop[0]
             return pop
 
+        def giveRank(pop):
+            if not self.keepContinue:
+                return
+            c_rank = -1
+            c_score = 0
+            for p in pop:
+                if p.score != c_score:
+                    c_score = p.score
+                    c_rank += 1 
+                p.rank = c_rank
+                # print p
+            return pop
+
 
         # print "\n----------------------------new Step----------------------------"
         self.possible = state.getAllPossibleActions()
-        self.bestSeq = unit([],-1,True)
+        self.bestSeq = Chrome([],-1,True)
         population = initPopulation([])
         self.keepContinue = True
         finalPopulation = population
@@ -246,11 +257,10 @@ class GeneticAgent(Agent):
         while self.keepContinue:
             population = updateFitness(population)
             population = updateCurrentBest(population)
+            population = giveRank(population)
             population = generateNewPopulation(population)
 
         ansSeq = self.bestSeq.actionList
-        # print "best: "+str(self.bestSeq)
-        # print ansSeq
         return ansSeq[0]
 
 class Node:
