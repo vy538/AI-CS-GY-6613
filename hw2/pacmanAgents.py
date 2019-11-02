@@ -206,7 +206,7 @@ class GeneticAgent(Agent):
             return result
 
         def multation(indi):
-            act = indi.actionList
+            act = indi.actionList[:]
             rand = random.randint(1,10)
             if rand == 1:
                 randomPos = random.randint(0,len(act)-1)
