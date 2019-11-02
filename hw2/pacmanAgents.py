@@ -177,11 +177,12 @@ class GeneticAgent(Agent):
             return unit.score
 
         def parentSelection(pop):
+            # print "in parent selection"
             weightedPool = []
             highestRank = max([p.rank for p in pop])
             for p in pop:
                 j = highestRank - p.rank + 1
-                # print "add "+str(p.id)+" "+str(j)+" times"
+                # print "add "+str(p.id)+" "+"rank: "+str(p.rank)+" "+str(j)+" times"
                 while j > 0:
                     weightedPool.append(p)
                     j -= 1
@@ -198,10 +199,10 @@ class GeneticAgent(Agent):
                 return result
             else:
                 for i in range(0,2):
-                    tempActions = []
+                    tempActions = parents[0].actionList[:]
                     for j in range(0,5):
                         rand2 = random.randint(1,10)%2
-                        tempActions.append(parents[rand2].actionList[j])
+                        tempActions[j] = parents[rand2].actionList[j]
                     result[i] = Chrome(tempActions)
             return result
 
@@ -210,7 +211,12 @@ class GeneticAgent(Agent):
             rand = random.randint(1,10)
             if rand == 1:
                 randomPos = random.randint(0,len(act)-1)
-                act[randomPos] = self.possible[random.randint(0,len(self.possible)-1)]
+                newAct = None
+                while True:
+                    newAct = self.possible[random.randint(0,len(self.possible)-1)]
+                    if newAct != act[randomPos]:
+                        break
+                act[randomPos] = newAct
             indi.actionList = act[:]
             return indi
 
@@ -236,14 +242,13 @@ class GeneticAgent(Agent):
         def giveRank(pop):
             if not self.keepContinue:
                 return
-            c_rank = -1
+            c_rank = 0
             c_score = 0
             for p in pop:
                 if p.score != c_score:
                     c_score = p.score
                     c_rank += 1 
                 p.rank = c_rank
-                # print p
             return pop
 
 
@@ -370,9 +375,7 @@ class MCTSAgent(Agent):
                 if not self.keepContinue:
                     return -1
                 i+=1
-            # print "\ti:"+str(i)
             reward = gameEvaluation(thisNodeTempState,tempState)
-            # print "reward "+str(reward)
             return reward
 
         def backUp(node,reward):
