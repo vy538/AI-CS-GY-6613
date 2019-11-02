@@ -1,0 +1,287 @@
+# pacmanAgents.py
+# ---------------
+# Licensing Information:  You are free to use or extend these projects for
+# educational purposes provided that (1) you do not distribute or publish
+# solutions, (2) you retain this notice, and (3) you provide clear
+# attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
+#
+# Attribution Information: The Pacman AI projects were developed at UC Berkeley.
+# The core projects and autograders were primarily created by John DeNero
+# (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
+# Student side autograding was added by Brad Miller, Nick Hay, and
+# Pieter Abbeel (pabbeel@cs.berkeley.edu).
+
+
+from pacman import Directions
+from game import Agent
+from heuristics import *
+import random
+
+class RandomAgent(Agent):
+    # Initialization Function: Called one time when the game starts
+    def registerInitialState(self, state):
+        return;
+
+    # GetAction Function: Called with every frame
+    def getAction(self, state):
+        # get all legal actions for pacman
+        actions = state.getLegalPacmanActions()
+        # returns random action from all the valide actions
+        return actions[random.randint(0,len(actions)-1)]
+
+class OneStepLookAheadAgent(Agent):
+    # Initialization Function: Called one time when the game starts
+    def registerInitialState(self, state):
+        return;
+
+    # GetAction Function: Called with every frame
+    def getAction(self, state):
+        # get all legal actions for pacman
+        legal = state.getLegalPacmanActions()
+        print(legal)
+        # get all the successor state for these actions
+        successors = [(state.generatePacmanSuccessor(action), action) for action in legal]
+        # evaluate the successor states using scoreEvaluation heuristic
+        scored = [(admissibleHeuristic(state), action) for state, action in successors]
+        # get best choice
+        bestScore = min(scored)[0]
+        # get all actions that lead to the highest score
+        bestActions = [pair[1] for pair in scored if pair[0] == bestScore]
+        # print(scored)
+        # return random action from the list of the best actions
+        return random.choice(bestActions)
+
+class BFSAgent(Agent):
+    # Initialization Function: Called one time when the game starts
+
+    def registerInitialState(self, state):
+        return;
+
+    # GetAction Function: Called with every frame
+    def getAction(self, state):
+        # TODO: write BFS Algorithm instead of returning Directions.STOP
+        def nodeBuilder(state,actions,score):
+            temp ={
+                "state":state,
+                "actions":actions,
+                "score":score
+            }
+            return temp
+
+        def getScore(item):
+            return item["score"]
+
+        ans = []
+        originalNode = nodeBuilder(state,[],admissibleHeuristic(state))
+        # create node for original
+        tempQueue = [originalNode]
+        tempVisited = []
+        
+        while tempQueue: #while queue is not empty
+            
+            # get node from the first element,and remove it from the queue
+            tempNode = tempQueue[0]
+            tempQueue = tempQueue[1:]
+            # if this state is win state
+            if(tempNode["state"].isWin()):
+                ans = tempNode
+                break
+            # get all legal action from this node
+            c_legal = tempNode["state"].getLegalPacmanActions()
+            # get the action's sucessor and combine as (newstate,action)
+            successors = [(tempNode["state"].generatePacmanSuccessor(action),action) for action in c_legal]
+            # visting all the new state (sucessor)
+            for successor in successors: 
+                suc_state = successor[0]
+                suc_actions = tempNode["actions"]+[successor[1]]
+                #check if the action is unique
+                if suc_actions not in tempVisited:  
+                    # if it is the frindge store its parent's node to answer
+                    if(suc_state == None): 
+                        if(tempNode not in ans):
+                            ans.append(tempNode)
+                    else:
+                        node_suc = nodeBuilder(suc_state, suc_actions ,admissibleHeuristic(suc_state))
+                        # if isWin, answer is this node jump out the while
+                        if(suc_state.isWin()): 
+                            ans = node_suc  
+                            break
+                        if(not suc_state.isLose()): 
+                            # dont store the losing node
+                            tempQueue.append(node_suc)
+                        #store this actions
+                        tempVisited.append(suc_actions) 
+        # print("\nans:")
+        ans.sort(key=getScore)
+
+        # for item in ans:
+        #     print(item["score"],item["actions"])
+
+        if(ans != []):
+            bestNodes = ans[0]
+            bestActions = bestNodes["actions"]
+            nowAction = bestActions[0]
+        else:
+            nowAction = Directions.STOP
+        return nowAction
+
+
+class DFSAgent(Agent):
+    # Initialization Function: Called one time when the game starts
+    def registerInitialState(self, state):
+
+        return;
+
+    # GetAction Function: Called with every frame
+    def getAction(self, state):
+        # TODO: write DFS Algorithm instead of returning Directions.STOP
+        def nodeBuilder(state,actions,score):
+            temp ={
+                "state":state,
+                "actions":actions,
+                "score":score
+            }
+            return temp
+
+        def getScore(item):
+            return item["score"]
+
+        ans = []
+        originalNode = nodeBuilder(state,[],admissibleHeuristic(state))
+        # create node for original
+        tempQueue = [originalNode]
+        tempVisited = []
+        
+        # visting all the new state (sucessor)
+        while tempQueue: 
+            # get node from the last element,and remove it from the queue
+            tempNode = tempQueue.pop()
+            # if this state is win state
+            if(tempNode["state"].isWin()):
+                ans = tempNode
+                break            # get all legal action from this node
+            c_legal = tempNode["state"].getLegalPacmanActions()
+            # get the action's sucessor and combine as (newstate,action)
+            successors = [(tempNode["state"].generatePacmanSuccessor(action),action) for action in c_legal]
+            # visting all the new state (sucessor)
+            for successor in successors: 
+                suc_state = successor[0]
+                suc_actions = tempNode["actions"]+[successor[1]]
+                #check if the action is unique
+                if suc_actions not in tempVisited:
+                # if it is the frindge store its parent's node to answer 
+                    if suc_state == None: 
+                        if(tempNode not in ans ):
+                            ans.append(tempNode)
+                    else:
+                        node_suc = nodeBuilder(suc_state, suc_actions ,admissibleHeuristic(suc_state))
+                        # if isWin, answer is this node jump out the while
+                        if(suc_state.isWin()): 
+                            ans = node_suc  
+                            break
+                        # dont store the losing node
+                        if(not suc_state.isLose()): 
+                            tempQueue.append(node_suc)
+                        #store this actions to visited queue
+                        tempVisited.append(suc_actions) 
+
+        # print("\nans:")
+        ans.sort(key=getScore)
+
+        # for item in ans:
+        #     print(item["score"],item["actions"])
+        if(ans != []):
+            bestNodes = ans[0]
+            bestActions = bestNodes["actions"]
+            nowAction = bestActions[0]
+        else:
+            nowAction = Directions.STOP
+        return nowAction
+
+
+class AStarAgent(Agent):
+    # Initialization Function: Called one time when the game starts
+    def registerInitialState(self, state):
+        return;
+
+    # GetAction Function: Called with every frame
+    def getAction(self, state):
+        # TODO: write A* Algorithm instead of returning Directions.STOP
+        def debbuger(t_name,t_queue,t_key):
+            str1 = t_name
+            for item in t_queue:
+                str1 += str(item[t_key])
+                str1 +=", "
+            print(str1)
+
+        def nodeBuilder(state,f_value,actions):
+            # print("inside nodeBuilder:",state,position,f_value,actions)
+            temp = {
+                "state":state,
+                "score": f_value,
+                "actions": actions
+            }
+            return temp
+
+        def f_score(state,actions):
+            g_value = len(actions)
+            return admissibleHeuristic(state)+g_value
+
+        def findNeighbor(originalNode,ans):
+            c_legal = originalNode["state"].getLegalPacmanActions()
+            c_actions = originalNode["actions"]
+            c_successors = [(originalNode["state"].generatePacmanSuccessor(action),action) for action in c_legal]
+            newNodes = []
+            for pair in c_successors:
+                t_actions = c_actions+[pair[1]]
+                if pair[0] == None or len(t_actions)>maxDepth:
+                    if originalNode not in ans:
+                        ans.append(originalNode)
+                else:
+                    t_score = f_score(pair[0],t_actions)
+                    temp = nodeBuilder(pair[0],t_score,t_actions)
+                    newNodes.append(temp)
+            return newNodes,ans
+
+        def getScore(item):
+            return item["score"]
+
+        maxDepth = 5
+        ans = []
+        s_f_value = f_score(state,[])
+        originalNode = nodeBuilder(state,s_f_value,[])
+
+
+        openSet = [originalNode]
+        closeSet = []
+
+        while openSet:
+            openSet.sort(key=getScore)
+            node = openSet[0]
+            if(node["state"].isWin()):
+                ans = node
+                break
+            openSet = openSet[1:]
+            closeSet.append(node)
+
+            newNodes,ans = findNeighbor(node,ans)
+
+            for n in newNodes:
+                if n in closeSet:
+                    continue
+                if n not in openSet:
+                    openSet.append(n)
+
+        ans.sort(key = getScore)
+        # self.debbuger("ans:",ans,"score")
+        if(ans != []):
+            nowAction = ans[0]["actions"][0]
+        else:
+            nowAction = Directions.STOP
+
+        return nowAction
+
+
+
+
+
