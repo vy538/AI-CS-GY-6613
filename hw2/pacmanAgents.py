@@ -126,7 +126,7 @@ class Chrome:
     def __init__(self,actionList,score=None,root = False):
         if root:
             Chrome._COUNTER = 0
-        self.actionList = actionList
+        self.actionList = actionList[:]
         self.score = -999
         self.rank = -1
         self.id = Chrome._COUNTER
