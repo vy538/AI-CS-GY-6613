@@ -75,49 +75,50 @@ class HillClimberAgent(Agent):
         # TODO: write Hill Climber Algorithm instead of returning Directions.STOP
 
         def updateActionList():
-            # changed = 0
             for i in range(0,len(self.actionList)):
                 randNow = random.randint(0,1)
                 if randNow == 0:
-                    # changed += 1
-                    self.actionList[i] = possible[random.randint(0,len(possible)-1)];
-            # print "change rate:" + str(changed) +"/5"
+                    self.actionList[i] = possible[random.randint(0,len(possible)-1)]
             return
 
         def generateActionsTempState(temp):
             for i in range(0,len(self.actionList)):
-                if temp == None:
-                    return temp
-                if temp.isWin() + temp.isLose()==0:
+                if temp.isWin() + temp.isLose() == 0:
                     temp = temp.generatePacmanSuccessor(self.actionList[i])
                 else:
+                    # print i
+                    return temp
+                if temp == None:
+                    self.keepContinue = False
                     return temp
             return temp
 
         def stateScoreEvaluation(temp):
+            if not self.keepContinue:
+                return
             nowScore = gameEvaluation(state,temp)
+            # print nowScore
             if nowScore > self.bestSeq["score"]:
                 self.bestSeq["actions"] = self.actionList[:]
                 self.bestSeq["score"] = nowScore
+            else:
+                self.actionList = self.bestSeq["actions"][:]
             # print("current bestSeq:",self.bestSeq)
             return
 
-        self.bestSeq = {"actions":[],"score":-999};
+        self.bestSeq = {"actions":[],"score":0};
         possible = state.getAllPossibleActions();
 
-        # inital the five actions in action list
         for i in range(0,len(self.actionList)):
             self.actionList[i] = possible[random.randint(0,len(possible)-1)]
-        # --------------------------------------
-        tempState = state;
 
-        while tempState!= None :
+        self.bestSeq["actions"] = self.actionList[:]
+        self.keepContinue = True
+        while self.keepContinue :
             tempState = state
             tempState = generateActionsTempState(tempState)
-            if tempState != None:
-                stateScoreEvaluation(tempState)
-                updateActionList();
-       
+            stateScoreEvaluation(tempState)
+            updateActionList()
         return self.bestSeq["actions"][0]
 
 class unit:
@@ -129,6 +130,7 @@ class unit:
         self.score = -999
         self.id = Node._COUNTER
         Node._COUNTER += 1
+        # print(self)
 
     def __str__(self):
         str1 = str(self.id)+"\tactionList: "+str(self.actionList)+"\n\tscore: "+str(self.score)
@@ -149,12 +151,10 @@ class GeneticAgent(Agent):
                 for j in range(0,5):
                     acts.append(self.possible[random.randint(0,len(self.possible)-1)])
                 newUnit = unit(acts)
-                # print "add Unit: " + str(newUnit)
                 pop.append(newUnit)
             return pop
 
         def updateFitness(pop):
-           
             for i in range(0,8):
                 unit = pop[i]
                 acts = unit.actionList
@@ -166,17 +166,10 @@ class GeneticAgent(Agent):
                         break
                     if tempState == None:
                         self.keepContinue = False
-                        break     
-                
-                if tempState == None:
-                    break
-                else:
-                    score = gameEvaluation(state,tempState)
-                    pop[i].score = score
-                    if pop[i].score > self.bestSeq.score:
-                        self.bestSeq = pop[i]
-                        # print "best unit: "+ str(self.bestSeq)
-                # print "update unit: "+str(pop[i])
+                        return pop     
+                score = gameEvaluation(state,tempState)
+                pop[i].score = score
+
             return pop
 
         def getUnitScore(unit):
@@ -191,20 +184,6 @@ class GeneticAgent(Agent):
                     weightedPool.append(p)
                     j -= 1
                 repeated -= 1
-            # _p = None
-            # i = 0
-            # for p in weightedPool:
-            #     if _p == None:
-            #         _p = p
-            #         i = 1
-            #     elif _p != p:
-            #         print str(_p.id)+" : "+str(_p.score)+"_"+str(_p.actionList)+" repeat "+str(i)
-            #         _p = p
-            #         i = 1
-            #     else:
-            #         i +=1
-            # print str(_p.id)+" : "+str(_p.score)+"_"+str(_p.actionList)+" repeat "+str(i)
-            # print "\n"
             parent1 = weightedPool[random.randint(0,35)]
             parent2 = weightedPool[random.randint(0,35)]
             parents = [parent1,parent2]
@@ -239,7 +218,6 @@ class GeneticAgent(Agent):
         def generateNewPopulation(pop):
             if not self.keepContinue:
                 return
-            pop.sort(key=getUnitScore,reverse=True)
             newPop = []
             while len(newPop)<8:
                 parents = parentSelection(population)
@@ -247,20 +225,31 @@ class GeneticAgent(Agent):
                 for indi in results:
                     indi = multation(indi)
                     newPop.append(indi)
+            # print newPop[7]
             return newPop
+
+        def updateCurrentBest(pop):
+            if not self.keepContinue:
+                return
+            pop.sort(key=getUnitScore,reverse=True)
+            self.bestSeq = pop[0]
+            return pop
 
 
         # print "\n----------------------------new Step----------------------------"
         self.possible = state.getAllPossibleActions()
-        self.bestSeq = unit([],True)
+        self.bestSeq = unit([],-1,True)
         population = initPopulation([])
         self.keepContinue = True
-        
+        finalPopulation = population
+
         while self.keepContinue:
             population = updateFitness(population)
+            population = updateCurrentBest(population)
             population = generateNewPopulation(population)
 
         ansSeq = self.bestSeq.actionList
+        # print "best: "+str(self.bestSeq)
         # print ansSeq
         return ansSeq[0]
 
@@ -404,6 +393,18 @@ class MCTSAgent(Agent):
                     currentBest["score"] = tempScore
             return currentBest["child"]
         
+        def getAns(root):
+            ans = None
+            mostVisitedTime = -1
+            for child in root.children:
+                c_child = root.children[child]
+                if c_child.visited > mostVisitedTime:
+                    ans = c_child
+                    mostVisitedTime = c_child.visited
+                elif c_child.visited == mostVisitedTime and random.randint(0,1) == 1:
+                    ans = c_child
+            return ans
+
         def debuggingPrintTree(node):
             print node
             for child in node.children:
@@ -422,9 +423,7 @@ class MCTSAgent(Agent):
             reward = defaultPolicy(newNodeState)
             backUp(newNode,reward)
 
-        ansNode = bestChild(root,0)
-        # print debuggingPrintTree(root)
-        # print "ans: "+str(ansNode)
+        ansNode = getAns(root)
         ansAction = ansNode.actionList[0]
         return ansAction
 
