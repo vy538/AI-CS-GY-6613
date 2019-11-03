@@ -122,7 +122,7 @@ class HillClimberAgent(Agent):
 
 class Chrome:
     _COUNTER = 0
-    def __init__(self,actionList,score=None,root = False):
+    def __init__(self,actionList,root = False):
         if root:
             Chrome._COUNTER = 0
         self.actionList = actionList[:]
@@ -210,7 +210,6 @@ class GeneticAgent(Agent):
             for p in pop:
                 rand = random.randint(1,10)
                 if rand == 1:
-                    # print "mutate!"
                     p_act = p.actionList[:]
                     randomP = random.randint(0,len(p_act)-1)
                     newAct = None
@@ -228,9 +227,9 @@ class GeneticAgent(Agent):
             newPop = []
             while len(newPop)<8:
                 parents = parentSelection(population)
-                results = crossover(parents)
-                for indi in results:
-                    newPop.append(indi)
+                result1,result2 = crossover(parents)
+                newPop.append(result1)
+                newPop.append(result2)
             return newPop
 
         def updateCurrentBest(pop):
@@ -251,10 +250,8 @@ class GeneticAgent(Agent):
                 p.rank = c_rank
             return pop
 
-
-        # print "\n----------------------------new Step----------------------------"
         self.possible = state.getAllPossibleActions()
-        self.bestSeq = Chrome([],-1,True)
+        self.bestSeq = Chrome([],True)
         population = initPopulation()
         self.keepContinue = True
 
@@ -286,7 +283,8 @@ class Node:
     def __str__(self):
         str1 = "\n\tID: "+ str(self.id)
         str1 += "\t\tact: "+str(self.actionList)
-        str1 += "\n\t\t\tscore: "+str(self.totalReward/self.visited)
+        str1 += "\n\t\t\tvisited: "+str(self.visited)
+        str1 += "\n\t\t\ttotalReward: "+str(self.totalReward)
         if self.parent != None:
             str1 += "\n\t\t\tparentID: "+str(self.parent.id)
         if len(self.children) > 0:
@@ -386,7 +384,6 @@ class MCTSAgent(Agent):
             while node != None:
                 node.visited += 1
                 node.totalReward += reward
-                # print "update"+str(node)
                 node = node.parent
             return
 
@@ -435,6 +432,11 @@ class MCTSAgent(Agent):
             backUp(newNode,reward)
 
         ansNode = getAns(root)
+        # print "\n"
+        # for child in root.children:
+        #     print root.children[child]
+        # print "----------"
+        # print ansNode
         ansAction = ansNode.actionList[0]
         return ansAction
 
