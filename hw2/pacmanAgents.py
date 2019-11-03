@@ -86,7 +86,6 @@ class HillClimberAgent(Agent):
                 if temp.isWin() + temp.isLose() == 0:
                     temp = temp.generatePacmanSuccessor(self.actionList[i])
                 else:
-                    # print i
                     return temp
                 if temp == None:
                     self.keepContinue = False
@@ -146,7 +145,8 @@ class GeneticAgent(Agent):
     def getAction(self, state):
         # TODO: write Genetic Algorithm instead of returning Directions.STOP
 
-        def initPopulation(pop):
+        def initPopulation():
+            pop = []
             for i in range(0,8):
                 acts = []
                 for j in range(0,5):
@@ -182,14 +182,12 @@ class GeneticAgent(Agent):
             highestRank = max([p.rank for p in pop])
             for p in pop:
                 j = highestRank - p.rank + 1
-                # print "add "+str(p.id)+" "+"rank: "+str(p.rank)+" "+str(j)+" times"
                 while j > 0:
                     weightedPool.append(p)
                     j -= 1
             parent1 = weightedPool[random.randint(0,len(weightedPool)-1)]
             parent2 = weightedPool[random.randint(0,len(weightedPool)-1)]
             parents = [parent1,parent2]
-            # print "\nparent1: "+str(parent1)+"\nparent2: "+str(parent2)
             return parents
 
         def crossover(parents):
@@ -206,44 +204,46 @@ class GeneticAgent(Agent):
                     result[i] = Chrome(tempActions)
             return result
 
-        def multation(indi):
-            act = indi.actionList[:]
-            rand = random.randint(1,10)
-            if rand == 1:
-                randomPos = random.randint(0,len(act)-1)
-                newAct = None
-                while True:
-                    newAct = self.possible[random.randint(0,len(self.possible)-1)]
-                    if newAct != act[randomPos]:
-                        break
-                act[randomPos] = newAct
-            indi.actionList = act[:]
-            return indi
+        def multation(pop):
+            if not self.keepContinue:
+                return pop
+            for p in pop:
+                rand = random.randint(1,10)
+                if rand == 1:
+                    # print "mutate!"
+                    p_act = p.actionList[:]
+                    randomP = random.randint(0,len(p_act)-1)
+                    newAct = None
+                    while True:
+                        newAct = self.possible[random.randint(0,len(self.possible)-1)]
+                        if newAct != p_act[randomP]:
+                            break
+                    p_act[randomP] = newAct
+                    p.actionList = p_act[:]
+            return pop
 
         def generateNewPopulation(pop):
             if not self.keepContinue:
-                return
+                return pop
             newPop = []
             while len(newPop)<8:
                 parents = parentSelection(population)
                 results = crossover(parents)
                 for indi in results:
-                    indi = multation(indi)
                     newPop.append(indi)
             return newPop
 
         def updateCurrentBest(pop):
             if not self.keepContinue:
-                return
+                return pop
             pop.sort(key=getUnitScore,reverse=True)
             self.bestSeq = pop[0]
             return pop
 
         def giveRank(pop):
             if not self.keepContinue:
-                return
-            c_rank = 0
-            c_score = 0
+                return pop
+            c_rank = c_score = 0
             for p in pop:
                 if p.score != c_score:
                     c_score = p.score
@@ -255,15 +255,15 @@ class GeneticAgent(Agent):
         # print "\n----------------------------new Step----------------------------"
         self.possible = state.getAllPossibleActions()
         self.bestSeq = Chrome([],-1,True)
-        population = initPopulation([])
+        population = initPopulation()
         self.keepContinue = True
-        finalPopulation = population
 
         while self.keepContinue:
             population = updateFitness(population)
             population = updateCurrentBest(population)
             population = giveRank(population)
             population = generateNewPopulation(population)
+            population = multation(population)
 
         ansSeq = self.bestSeq.actionList
         return ansSeq[0]
@@ -424,8 +424,6 @@ class MCTSAgent(Agent):
                 childNode = node.children[child]
                 debuggingPrintTree(childNode)
             return
-        
-        # print "\n----------------------------new step----------------------------"
         
         root = Node(True) #create root node
         self.expended = []
