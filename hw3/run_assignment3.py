@@ -45,28 +45,28 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, 0.75)
 k = 3
 knn = models.KNN(k)
 #ID3
-nbins = 3
-data_range = (X_train.min(0), X_train.max(0))
-id3 = models.ID3(nbins, data_range)
+# nbins = 3
+# data_range = (X_train.min(0), X_train.max(0))
+# id3 = models.ID3(nbins, data_range)
 #Perceptron
-lr = .001
-w = np.random.normal(0, .1, size=X_train.shape[1])	#Each column represents all the weights going into an output node
-b = np.random.normal(0, .1, size=1)
-perceptron = models.Perceptron(w, b, lr)
+# lr = .001
+# w = np.random.normal(0, .1, size=X_train.shape[1])	#Each column represents all the weights going into an output node
+# b = np.random.normal(0, .1, size=1)
+# perceptron = models.Perceptron(w, b, lr)
 #MLP
-lr = .0001
-w1 = np.random.normal(0, .1, size=(X_train.shape[1], 10))
-w2 = np.random.normal(0, .1, size=(10,1))
-b1 = np.random.normal(0, .1, size=(1,10))
-b2 = np.random.normal(0, .1, size=(1,1))
-mlp = models.MLP(w1, b1, w2, b2, lr)
+# lr = .0001
+# w1 = np.random.normal(0, .1, size=(X_train.shape[1], 10))
+# w2 = np.random.normal(0, .1, size=(10,1))
+# b1 = np.random.normal(0, .1, size=(1,10))
+# b2 = np.random.normal(0, .1, size=(1,1))
+# mlp = models.MLP(w1, b1, w2, b2, lr)
 
 #Train
 steps = 100*y_train.size
 knn.train(X_train, y_train)
-id3.train(X_train, y_train)
-perceptron.train(X_train, y_train, steps)
-mlp.train(X_train, y_train, steps)
+# id3.train(X_train, y_train)
+# perceptron.train(X_train, y_train, steps)
+# mlp.train(X_train, y_train, steps)
 
 #Check weights (For grading)
 # perceptron.w
@@ -86,9 +86,9 @@ def evaluate(solutions, real):
 
 solutions = knn.predict(X_test)
 print(evaluate(solutions, y_test))
-solutions = id3.predict(X_test)
-print(evaluate(solutions, y_test))
-solutions = perceptron.predict(X_test)
-print(evaluate(solutions, y_test))
-solutions = mlp.predict(X_test)
-print(evaluate(solutions, y_test))
+# solutions = id3.predict(X_test)
+# print(evaluate(solutions, y_test))
+# solutions = perceptron.predict(X_test)
+# print(evaluate(solutions, y_test))
+# solutions = mlp.predict(X_test)
+# print(evaluate(solutions, y_test))

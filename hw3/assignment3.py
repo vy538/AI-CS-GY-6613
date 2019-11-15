@@ -15,12 +15,42 @@ class KNN:
 	def train(self, X, y):
 		#training logic here
 		#input is an array of features and labels
-		None
+		self.features = X
+		self.labels = y
+		# print("features",self.features,"how long?",len(self.features))
+		# print("labels",self.labels,"how long?",len(self.labels)) 
+		return None
+
+	def findNeighbors(self,target):
+		distance = []
+		for f in range(len(self.features)):
+			dist = self.distance(target,self.features[f])
+			label = self.labels[f]
+			distance.append([label,dist])
+		distance.sort(key=lambda x:x[1])
+		neighbors = distance[:self.k]
+		return neighbors
+
+	def findMajority(self,neighbors):
+		major = {}
+		for n in range(len(neighbors)):
+			option = neighbors[n][0]
+			if option not in major:
+				major[option] = 1
+			else:
+				major[option] += 1
+		res = max(major,key=lambda k:major[k])
+		return res
 
 	def predict(self, X):
 		#Run model here
 		#Return array of predictions where there is one prediction for each set of features
-		return None
+		result = []
+		for x in X:
+			neighbors = self.findNeighbors(x)
+			outcome = self.findMajority(neighbors)
+			result.append(outcome)
+		return np.ravel(result)
 
 class ID3:
 	def __init__(self, nbins, data_range):
@@ -33,7 +63,7 @@ class ID3:
 		#Our dataset only has continuous data
 		norm_data = (data - self.range[0]) / np.maximum((self.range[1] - self.range[0]), 1e-6)
 		categorical_data = np.floor(self.bin_size*norm_data).astype(int)
-		return np.clip(categorical_data, 0, self.nbins - 1)
+		return np.clip(categorical_data, 0, self.bin_size - 1)
 
 	def train(self, X, y):
 		#training logic here
@@ -73,14 +103,17 @@ class MLP:
 
 	def MSE(self, prediction, target):
 		return np.square(target - prediction).sum()
+		
 
 	def MSEGrad(self, prediction, target):
 		return - 2.0 * (target - prediction)
+		
 
 	def shuffle(self, X, y):
 		idxs = np.arange(y.size)
 		np.random.shuffle(idxs)
 		return X[idxs], y[idxs]
+		
 
 	def train(self, X, y, steps):
 		for s in range(steps):
@@ -102,6 +135,7 @@ class MLP:
 			grad = self.l2.backward(grad)
 			grad = self.a1.backward(grad)
 			grad = self.l1.backward(grad)
+		None
 
 	def predict(self, X):
 		pred = self.l1.forward(X)
