@@ -144,6 +144,7 @@ class MLP:
 		pred = self.a2.forward(pred)
 		pred = np.round(pred)
 		return np.ravel(pred)
+		
 
 class FCLayer:
 
