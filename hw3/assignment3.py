@@ -17,8 +17,6 @@ class KNN:
 		#input is an array of features and labels
 		self.features = X
 		self.labels = y
-		# print("features",self.features,"how long?",len(self.features))
-		# print("labels",self.labels,"how long?",len(self.labels)) 
 		return None
 
 	def findNeighbors(self,target):
