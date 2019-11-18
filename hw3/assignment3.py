@@ -51,6 +51,15 @@ class KNN:
 		return np.ravel(result)
 
 class ID3:
+	class Node(object):
+		def __init__(self,id,data,value):
+			self.id = id
+			self.data = data
+			self.value = value
+		def __str__(self):
+			str1 = "id: "+str(self.id)+"\tdata: "+str(self.data)+"\n\toutcome: "+str(self.value)
+			return str1
+
 	def __init__(self, nbins, data_range):
 		#Decision tree state here
 		#Feel free to add methods
@@ -67,24 +76,29 @@ class ID3:
 		#training logic here
 		#input is array of features and labels
 		categorical_data = self.preprocess(X)
-		# print(categorical_data[0],len(categorical_data))
-		examples = np.array(categorical_data)
-		attributes = np.array(y)
+		# print(categorical_data[0],len(categorical_data[0]))
+		attributes = np.arange(np.size(categorical_data,1))
+		# print(attributes)
+		examples = []
+		for d in range(len(categorical_data)):
+			n_example = self.Node(d,categorical_data[d],y[d])
+			examples.append(n_example)
 		self.tree = self.treebuilding(examples,attributes,None)
 
 	def treebuilding(self,examples,attributes,parent_examples):
-		if examples == None:
+		if len(examples)==0:
 			return self.plurality_value(parent_examples)
-		elif self.isSameLabel(examples):
-			return self.getLabel(examples)
-		elif attributes == None:
+		elif self.isSameLabel(attributes):
+			return attributes[-1]
+		elif len(attributes) == 0:
 			return self.plurality_value(examples)
 		else:
-			n_attribute = self.getBestAttribute(examples)
+			print("in else")
+			n_attribute = self.getBestAttribute(examples,attributes)
 			n_tree = self.generateNewTree(n_attribute)
 			for v in self.getValueWithAttribute(n_attribute):
 				n_example = self.getExamplesWithAttributeValue(examples,v)
-				subtree = self.treebuilding(n_example,None,examples)
+				subtree = self.treebuilding(n_example,None,examples)#need to replace none
 				n_tree = self.addBranch(subtree,n_tree)
 		return None
 
@@ -100,24 +114,40 @@ class ID3:
 	def generateNewTree(self,attr):
 		return None
 
-	def getBestAttribute(self,examples):
+	def Info(self,p_value,n_value):
 		return None
 
-	def getLabel(self,data):
+	def gain(self,attr,examples):
+		print("in gain")
+		for example in examples:
+			
+
 		return None
 
-	def isSameLabel(self,data):
-		return False
+	def getBestAttribute(self,examples,attributes):
+		print("in getBestAttribute")
+		best_Attribute = []
+		for attr in range(len(attributes)):
+			current_gain = self.gain(attributes[attr],examples)
+			best_Attribute.append((attributes[attr],current_gain))
+		res = max(attr,key=lambda n:best_Attribute[n][1])
+		return res[0]
+
+	def isSameLabel(self,attrs):
+		print("is same label",len(np.unique(attrs)) == 1)
+		return len(np.unique(attrs)) == 1
 
 	def plurality_value(self,data):
+		print("in plurality_value")
 		major = {}
 		for n in range(len(data)):
-			option = data[n][0]
+			option = data[n].value
 			if option not in major:
 				major[option] = 1
 			else:
 				major[option] += 1
 		res = max(major,key=lambda k:major[k])
+		print("plurality_value",res)
 		return res
 
 	def predict(self, X):
