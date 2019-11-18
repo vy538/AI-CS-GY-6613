@@ -114,15 +114,48 @@ class ID3:
 	def generateNewTree(self,attr):
 		return None
 
-	def Info(self,p_value,n_value):
-		return None
+	def infoCompute(self,p_value,n_value):
+		print("infoCompute")
+		total = p_value + n_value
+		ans = -(p_value/total)*np.log2(p_value/total)
+		# print("\thalf",ans)
+		ans = -(n_value/total)*np.log2(n_value/total)
+		# print("\tans",ans,total)
+		return ans
+
+	def getPNValue(self,examples):
+		print("getPNValue")
+		exP = exN = 0
+		for ex in examples:
+			if ex.value == 1:
+				exP +=1
+			else:
+				exN +=1
+		return exP,exN
+
+	def sumOfInformation(self,examples,attr):
+		print("sumOfInformation")
+		totalExample = len(examples)
+		values = {}
+		for ex in examples:
+			if ex.data[attr] not in values:
+				values[ex.data[attr]] = [ex]
+			else:
+				values[ex.data[attr]].append(ex)
+
+		currentTotal = 0
+		for v in values:
+			vP,vN = self.getPNValue(values[v])
+			currentTotal += vP/totalExample*self.infoCompute(vP,vN)
+		return currentTotal
 
 	def gain(self,attr,examples):
-		print("in gain")
-		for example in examples:
-			
-
-		return None
+		print("in gain, attr = ",attr)
+		exP,exN = self.getPNValue(examples)
+		expectedInfo = self.infoCompute(exP,exN)
+		infomationNeeded = self.sumOfInformation(examples,attr)
+		ans = expectedInfo - infomationNeeded
+		return ans
 
 	def getBestAttribute(self,examples,attributes):
 		print("in getBestAttribute")
