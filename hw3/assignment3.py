@@ -52,10 +52,16 @@ class KNN:
 
 class ID3:
 	class Tree(object):
-		def __init__(self):
+		def __init__(self,attr):
+			self.attr = attr
 			self.branches = {}
 		def addBranch(self,key,branch):
 			self.branches[key] = branch
+		def __str__(self):
+			str1 = "I am Tree "+str(self.attr)
+			for b in self.branches:
+				str1 += "\nbranch: "+str(b)+"\tlength: "+str(self.branches[b])
+			return str1
 
 	class Node(object):
 		def __init__(self,id,data,value):
@@ -99,15 +105,15 @@ class ID3:
 		else:
 			target_attr = self.getBestAttribute(examples,attributes)
 			new_attr = attributes[attributes!=target_attr]
-			print("\t",target_attr)
-			print("\t",attributes)
-			print("\t",new_attr)
-			n_tree = self.Tree()
+			n_tree = self.Tree(target_attr)
+			
 			for v in self.getValuesWithAttribute(target_attr,examples):
 				n_example = self.getExamplesWithAttributeValue(examples,target_attr,v)
 				subtree = self.treebuilding(n_example,new_attr,examples)
-				n_tree = n_tree.addBranch(v,subtree)
-		return None
+				print(subtree)
+				n_tree.addBranch(v,subtree)
+			print(n_tree)
+		return n_tree
 
 
 	def getExamplesWithAttributeValue(self,examples,attr,v):
@@ -118,7 +124,7 @@ class ID3:
 		return n_example
 
 	def getValuesWithAttribute(self,attr,examples):
-		print("getValuesWithAttribute",attr)
+		# print("getValuesWithAttribute",attr)
 		totalExample = len(examples)
 		values = {}
 		for ex in examples:
@@ -129,7 +135,7 @@ class ID3:
 		return values
 
 	def infoCompute(self,p_value,n_value):
-		print("infoCompute")
+		# print("infoCompute")
 		ans = 0
 		total = p_value + n_value
 		if total != 0:
@@ -142,7 +148,7 @@ class ID3:
 		return ans
 
 	def getPNValue(self,examples):
-		print("getPNValue")
+		# print("getPNValue")
 		exP = exN = 0
 		for ex in examples:
 			if ex.value == 1:
@@ -152,7 +158,7 @@ class ID3:
 		return exP,exN
 
 	def sumOfInformation(self,examples,attr):
-		print("sumOfInformation")
+		# print("sumOfInformation")
 		totalExample = len(examples)
 		values = self.getValuesWithAttribute(attr,examples)
 		currentTotal = 0
@@ -163,7 +169,7 @@ class ID3:
 		return currentTotal
 
 	def gain(self,attr,examples):
-		print("in gain, attr = ",attr)
+		# print("in gain, attr = ",attr)
 		exP,exN = self.getPNValue(examples)
 		expectedInfo = self.infoCompute(exP,exN)
 		infomationNeeded = self.sumOfInformation(examples,attr)
@@ -172,7 +178,7 @@ class ID3:
 		return ans
 
 	def getBestAttribute(self,examples,attributes):
-		print("in getBestAttribute")
+		# print("in getBestAttribute")
 		best_Attribute = None
 		for attr in attributes:
 			current_gain = self.gain(attr,examples)
@@ -181,7 +187,7 @@ class ID3:
 		return best_Attribute[0]
 
 	def isSameLabel(self,examples):
-		print("is same label")
+		# print("is same label")
 		isSame = True
 		lastValue = examples[0].value
 		for ex in examples:
@@ -191,7 +197,7 @@ class ID3:
 		return isSame
 
 	def plurality_value(self,examples):
-		print("in plurality_value")
+		# print("in plurality_value")
 		major = {}
 		for ex in examples:
 			option = ex.value
