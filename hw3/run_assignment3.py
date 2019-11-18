@@ -45,9 +45,9 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, 0.75)
 k = 3
 knn = models.KNN(k)
 #ID3
-# nbins = 3
-# data_range = (X_train.min(0), X_train.max(0))
-# id3 = models.ID3(nbins, data_range)
+nbins = 3
+data_range = (X_train.min(0), X_train.max(0))
+id3 = models.ID3(nbins, data_range)
 #Perceptron
 # lr = .001
 # w = np.random.normal(0, .1, size=X_train.shape[1])	#Each column represents all the weights going into an output node
@@ -64,7 +64,7 @@ knn = models.KNN(k)
 #Train
 steps = 100*y_train.size
 knn.train(X_train, y_train)
-# id3.train(X_train, y_train)
+id3.train(X_train, y_train)
 # perceptron.train(X_train, y_train, steps)
 # mlp.train(X_train, y_train, steps)
 
@@ -84,10 +84,10 @@ def evaluate(solutions, real):
 	labels = np.array(real)
 	return (predictions == labels).sum() / float(labels.size)
 
-solutions = knn.predict(X_test)
-print(evaluate(solutions, y_test))
-# solutions = id3.predict(X_test)
+# solutions = knn.predict(X_test)
 # print(evaluate(solutions, y_test))
+solutions = id3.predict(X_test)
+print(evaluate(solutions, y_test))
 # solutions = perceptron.predict(X_test)
 # print(evaluate(solutions, y_test))
 # solutions = mlp.predict(X_test)

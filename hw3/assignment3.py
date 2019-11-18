@@ -67,6 +67,58 @@ class ID3:
 		#training logic here
 		#input is array of features and labels
 		categorical_data = self.preprocess(X)
+		# print(categorical_data[0],len(categorical_data))
+		examples = np.array(categorical_data)
+		attributes = np.array(y)
+		self.tree = self.treebuilding(examples,attributes,None)
+
+	def treebuilding(self,examples,attributes,parent_examples):
+		if examples == None:
+			return self.plurality_value(parent_examples)
+		elif self.isSameLabel(examples):
+			return self.getLabel(examples)
+		elif attributes == None:
+			return self.plurality_value(examples)
+		else:
+			n_attribute = self.getBestAttribute(examples)
+			n_tree = self.generateNewTree(n_attribute)
+			for v in self.getValueWithAttribute(n_attribute):
+				n_example = self.getExamplesWithAttributeValue(examples,v)
+				subtree = self.treebuilding(n_example,None,examples)
+				n_tree = self.addBranch(subtree,n_tree)
+		return None
+
+	def addBranch(self,subTree,mainTree):
+		return None
+
+	def getExamplesWithAttributeValue(self,examples,value):
+		return None
+
+	def getValueWithAttribute(self,attr):
+		return None
+
+	def generateNewTree(self,attr):
+		return None
+
+	def getBestAttribute(self,examples):
+		return None
+
+	def getLabel(self,data):
+		return None
+
+	def isSameLabel(self,data):
+		return False
+
+	def plurality_value(self,data):
+		major = {}
+		for n in range(len(data)):
+			option = data[n][0]
+			if option not in major:
+				major[option] = 1
+			else:
+				major[option] += 1
+		res = max(major,key=lambda k:major[k])
+		return res
 
 	def predict(self, X):
 		#Run model here
