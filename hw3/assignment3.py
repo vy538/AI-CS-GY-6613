@@ -51,6 +51,12 @@ class KNN:
 		return np.ravel(result)
 
 class ID3:
+	class Tree(object):
+		def __init__(self):
+			self.branches = {}
+		def addBranch(self,key,branch):
+			self.branches[key] = branch
+
 	class Node(object):
 		def __init__(self,id,data,value):
 			self.id = id
@@ -76,9 +82,7 @@ class ID3:
 		#training logic here
 		#input is array of features and labels
 		categorical_data = self.preprocess(X)
-		# print(categorical_data[0],len(categorical_data[0]))
 		attributes = np.arange(np.size(categorical_data,1))
-		# print(attributes)
 		examples = []
 		for d in range(len(categorical_data)):
 			n_example = self.Node(d,categorical_data[d],y[d])
@@ -86,41 +90,54 @@ class ID3:
 		self.tree = self.treebuilding(examples,attributes,None)
 
 	def treebuilding(self,examples,attributes,parent_examples):
-		if len(examples)==0:
+		if examples == None:
 			return self.plurality_value(parent_examples)
-		elif self.isSameLabel(attributes):
-			return attributes[-1]
-		elif len(attributes) == 0:
+		elif self.isSameLabel(examples):
+			return examples[-1].value
+		elif len(attributes)==0:
 			return self.plurality_value(examples)
 		else:
-			print("in else")
-			n_attribute = self.getBestAttribute(examples,attributes)
-			n_tree = self.generateNewTree(n_attribute)
-			for v in self.getValueWithAttribute(n_attribute):
-				n_example = self.getExamplesWithAttributeValue(examples,v)
-				subtree = self.treebuilding(n_example,None,examples)#need to replace none
-				n_tree = self.addBranch(subtree,n_tree)
+			target_attr = self.getBestAttribute(examples,attributes)
+			new_attr = attributes[attributes!=target_attr]
+			print(attributes)
+			print(new_attr)
+			n_tree = self.Tree()
+			# for v in self.getValuesWithAttribute(target_attr,examples):
+			# 	n_example = self.getExamplesWithAttributeValue(examples,target_attr,v)
+				# subtree = self.treebuilding(n_example,new_attr,examples)
+				# n_tree = n_tree.addBranch(v,subtree)
 		return None
 
-	def addBranch(self,subTree,mainTree):
-		return None
 
-	def getExamplesWithAttributeValue(self,examples,value):
-		return None
+	def getExamplesWithAttributeValue(self,examples,attr,v):
+		n_example = []
+		for ex in examples:
+			if ex.data[attr] == v:
+				n_example.append(ex)
+		return n_example
 
-	def getValueWithAttribute(self,attr):
-		return None
-
-	def generateNewTree(self,attr):
-		return None
+	def getValuesWithAttribute(self,attr,examples):
+		print("getValuesWithAttribute",attr)
+		totalExample = len(examples)
+		values = {}
+		for ex in examples:
+			if ex.data[attr] not in values:
+				values[ex.data[attr]] = [ex]
+			else:
+				values[ex.data[attr]].append(ex)
+		return values
 
 	def infoCompute(self,p_value,n_value):
 		print("infoCompute")
+		ans = 0
 		total = p_value + n_value
-		ans = -(p_value/total)*np.log2(p_value/total)
-		# print("\thalf",ans)
-		ans = -(n_value/total)*np.log2(n_value/total)
-		# print("\tans",ans,total)
+		if total != 0:
+			p_d = p_value/total
+			n_d = n_value/total
+			if p_d != 0:
+				ans = -(p_d)*np.log2(p_d)
+			if n_d != 0:
+				ans = -(n_d)*np.log2(n_d)
 		return ans
 
 	def getPNValue(self,examples):
@@ -136,16 +153,11 @@ class ID3:
 	def sumOfInformation(self,examples,attr):
 		print("sumOfInformation")
 		totalExample = len(examples)
-		values = {}
-		for ex in examples:
-			if ex.data[attr] not in values:
-				values[ex.data[attr]] = [ex]
-			else:
-				values[ex.data[attr]].append(ex)
-
+		values = self.getValuesWithAttribute(attr,examples)
 		currentTotal = 0
 		for v in values:
 			vP,vN = self.getPNValue(values[v])
+			print("vP,vN",vP,vN)
 			currentTotal += vP/totalExample*self.infoCompute(vP,vN)
 		return currentTotal
 
@@ -155,26 +167,33 @@ class ID3:
 		expectedInfo = self.infoCompute(exP,exN)
 		infomationNeeded = self.sumOfInformation(examples,attr)
 		ans = expectedInfo - infomationNeeded
+		print("\tgain:",ans)
 		return ans
 
 	def getBestAttribute(self,examples,attributes):
 		print("in getBestAttribute")
-		best_Attribute = []
-		for attr in range(len(attributes)):
-			current_gain = self.gain(attributes[attr],examples)
-			best_Attribute.append(current_gain)
-		res = np.argmax(best_Attribute)
-		return res
+		best_Attribute = None
+		for attr in attributes:
+			current_gain = self.gain(attr,examples)
+			if best_Attribute == None or current_gain > best_Attribute[1]:
+				best_Attribute = (attr,current_gain)
+		return best_Attribute[0]
 
-	def isSameLabel(self,attrs):
-		print("is same label",len(np.unique(attrs)) == 1)
-		return len(np.unique(attrs)) == 1
+	def isSameLabel(self,examples):
+		print("is same label")
+		isSame = True
+		lastValue = examples[0].value
+		for ex in examples:
+			if ex.value != lastValue:
+				isSame = False
+				break
+		return isSame
 
-	def plurality_value(self,data):
+	def plurality_value(self,examples):
 		print("in plurality_value")
 		major = {}
-		for n in range(len(data)):
-			option = data[n].value
+		for ex in examples:
+			option = ex.value
 			if option not in major:
 				major[option] = 1
 			else:
