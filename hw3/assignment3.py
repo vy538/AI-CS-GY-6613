@@ -162,9 +162,9 @@ class ID3:
 		best_Attribute = []
 		for attr in range(len(attributes)):
 			current_gain = self.gain(attributes[attr],examples)
-			best_Attribute.append((attributes[attr],current_gain))
-		res = max(attr,key=lambda n:best_Attribute[n][1])
-		return res[0]
+			best_Attribute.append(current_gain)
+		res = np.argmax(best_Attribute)
+		return res
 
 	def isSameLabel(self,attrs):
 		print("is same label",len(np.unique(attrs)) == 1)
