@@ -99,13 +99,14 @@ class ID3:
 		else:
 			target_attr = self.getBestAttribute(examples,attributes)
 			new_attr = attributes[attributes!=target_attr]
-			print(attributes)
-			print(new_attr)
+			print("\t",target_attr)
+			print("\t",attributes)
+			print("\t",new_attr)
 			n_tree = self.Tree()
-			# for v in self.getValuesWithAttribute(target_attr,examples):
-			# 	n_example = self.getExamplesWithAttributeValue(examples,target_attr,v)
-				# subtree = self.treebuilding(n_example,new_attr,examples)
-				# n_tree = n_tree.addBranch(v,subtree)
+			for v in self.getValuesWithAttribute(target_attr,examples):
+				n_example = self.getExamplesWithAttributeValue(examples,target_attr,v)
+				subtree = self.treebuilding(n_example,new_attr,examples)
+				n_tree = n_tree.addBranch(v,subtree)
 		return None
 
 
@@ -157,7 +158,7 @@ class ID3:
 		currentTotal = 0
 		for v in values:
 			vP,vN = self.getPNValue(values[v])
-			print("vP,vN",vP,vN)
+			# print("vP,vN",vP,vN)
 			currentTotal += vP/totalExample*self.infoCompute(vP,vN)
 		return currentTotal
 
@@ -167,7 +168,7 @@ class ID3:
 		expectedInfo = self.infoCompute(exP,exN)
 		infomationNeeded = self.sumOfInformation(examples,attr)
 		ans = expectedInfo - infomationNeeded
-		print("\tgain:",ans)
+		# print("\tgain:",ans)
 		return ans
 
 	def getBestAttribute(self,examples,attributes):
@@ -199,7 +200,7 @@ class ID3:
 			else:
 				major[option] += 1
 		res = max(major,key=lambda k:major[k])
-		print("plurality_value",res)
+		# print("plurality_value",res)
 		return res
 
 	def predict(self, X):
