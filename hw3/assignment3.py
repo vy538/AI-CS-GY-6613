@@ -54,13 +54,23 @@ class ID3:
 	class Tree(object):
 		def __init__(self,attr):
 			self.attr = attr
+			self.parent = None
 			self.branches = {}
 		def addBranch(self,key,branch):
 			self.branches[key] = branch
+			if type(branch) == type(self):
+				self.branches[key].parent = self
 		def __str__(self):
-			str1 = "I am Tree "+str(self.attr)
+			str1 = ""
+			if self.parent != None:
+				str1 += str(self.parent.attr)+" --> "+str(self.attr)
+			else:
+				str1 += str(self.attr)
 			for b in self.branches:
-				str1 += "\nbranch: "+str(b)+"\tlength: "+str(self.branches[b])
+				if type(self.branches[b]) == type(self):
+					str1 += "\n\tbranch: "+str(b)+"\tattr: "+str(self.branches[b].attr)
+				else:
+					str1 += "\n\tbranch: "+str(b)+"\tout: "+str(self.branches[b])
 			return str1
 
 	class Node(object):
@@ -110,11 +120,10 @@ class ID3:
 			for v in self.getValuesWithAttribute(target_attr,examples):
 				n_example = self.getExamplesWithAttributeValue(examples,target_attr,v)
 				subtree = self.treebuilding(n_example,new_attr,examples)
-				print(subtree)
+				# print(subtree)
 				n_tree.addBranch(v,subtree)
-			print(n_tree)
+			# print(n_tree)
 		return n_tree
-
 
 	def getExamplesWithAttributeValue(self,examples,attr,v):
 		n_example = []
@@ -209,11 +218,37 @@ class ID3:
 		# print("plurality_value",res)
 		return res
 
+	def printTree(self,t):
+		print(t)
+		for b in t.branches:
+			if type(t.branches[b]) == type(t):
+				self.printTree(t.branches[b])
+		return None
+
+	def readData(self,t,data):
+		# print(t)
+		data_v = data[t.attr]
+		# print(data)
+		# print("\tgot to branch:",data_v)
+		if not data_v in t.branches:
+			return -1
+		n_t = t.branches[data_v]
+		if type(n_t) == type(t) and len(t.branches) > 1:
+			return self.readData(n_t,data)
+		else:
+			return n_t
+
 	def predict(self, X):
 		#Run model here
 		#Return array of predictions where there is one prediction for each set of features
 		categorical_data = self.preprocess(X)
-		return None
+		prediction = np.array([])
+		# self.printTree(self.tree) #for debugging
+		for row in categorical_data:
+			# print("------------------------ROOT------------------------")
+			prediction = np.append(prediction,self.readData(self.tree,row))
+			# break #for debugging
+		return prediction
 
 class Perceptron:
 	def __init__(self, w, b, lr):
