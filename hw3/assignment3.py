@@ -226,17 +226,41 @@ class ID3:
 		return None
 
 	def readData(self,t,data):
-		# print(t)
 		data_v = data[t.attr]
-		# print(data)
-		# print("\tgot to branch:",data_v)
 		if not data_v in t.branches:
-			return -1
+			return self.getMajorityOutcome(t) #need to get majority outcome
 		n_t = t.branches[data_v]
-		if type(n_t) == type(t) and len(t.branches) > 1:
+		if type(n_t) == type(t):
 			return self.readData(n_t,data)
 		else:
 			return n_t
+
+	def getOutcome(self,t):
+		outcome = []
+		for b in t.branches:
+			c_branch = t.branches[b]
+			if type(c_branch) == type(self.tree):
+				_out = self.getOutcome(c_branch)
+				outcome += _out
+			else:
+				outcome.append(c_branch)
+		
+		return outcome
+
+	def getMajorityOutcome(self,t):
+		outcome = self.getOutcome(t)
+		Ans0 = Ans1 = 0
+		for out in outcome:
+			if out == 0:
+				Ans0 += 1
+			else:
+				Ans1 += 1
+		if Ans1 > Ans0:
+			return 1
+		elif Ans0 < Ans1:
+			return 0
+		else:
+			return np.random.randint(0,1)
 
 	def predict(self, X):
 		#Run model here
