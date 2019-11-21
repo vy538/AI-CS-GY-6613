@@ -90,9 +90,9 @@ class ID3:
 
 	def preprocess(self, data):
 		#Our dataset only has continuous data
-		norm_data = (data - self.range[0]) / np.maximum((self.range[1] - self.range[0]), 1e-6)
+		norm_data = np.clip((data - self.range[0]) / (self.range[1] - self.range[0]), 0, 1)
 		categorical_data = np.floor(self.bin_size*norm_data).astype(int)
-		return np.clip(categorical_data, 0, self.bin_size - 1)
+		return categorical_data
 
 	def train(self, X, y):
 		#training logic here
