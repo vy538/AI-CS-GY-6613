@@ -54,7 +54,7 @@ w = np.random.normal(0, .1, size=X_train.shape[1])	#Each column represents all t
 b = np.random.normal(0, .1, size=1)
 perceptron = models.Perceptron(w, b, lr)
 #MLP
-# lr = .0001
+lr = .0001
 w1 = np.random.normal(0, .1, size=(X_train.shape[1], 10))
 w2 = np.random.normal(0, .1, size=(10,1))
 b1 = np.random.normal(0, .1, size=(1,10))
@@ -84,11 +84,11 @@ def evaluate(solutions, real):
 	labels = np.array(real)
 	return (predictions == labels).sum() / float(labels.size)
 
-# solutions = knn.predict(X_test)
-# print(evaluate(solutions, y_test))
-# solutions = id3.predict(X_test)
-# print(evaluate(solutions, y_test))
-# solutions = perceptron.predict(X_test)
-# print(evaluate(solutions, y_test))
+solutions = knn.predict(X_test)
+print("knn",evaluate(solutions, y_test))
+solutions = id3.predict(X_test)
+print("id3",evaluate(solutions, y_test))
+solutions = perceptron.predict(X_test)
+print("perceptron",evaluate(solutions, y_test))
 solutions = mlp.predict(X_test)
-print(evaluate(solutions, y_test))
+print("mlp",evaluate(solutions, y_test))
