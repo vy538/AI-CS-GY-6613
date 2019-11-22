@@ -285,12 +285,28 @@ class Perceptron:
 	def train(self, X, y, steps):
 		#training logic here
 		#input is array of features and labels
+
+		for step in range(steps):
+			oldW = self.w
+			oldB = self.b
+			for d in range(len(X)):
+				product = np.dot(X[d],self.w) + self.b
+				outcome = 1 if product > 0 else 0
+				diff = y[d]-outcome
+				self.w += self.lr*(diff)*X[d]
+				self.b += self.lr*(diff)
 		None
+
 
 	def predict(self, X):
 		#Run model here
 		#Return array of predictions where there is one prediction for each set of features
-		return None
+		prediction = np.array([])
+		for d in range(len(X)):
+			product = np.dot(X[d],self.w) + self.b
+			outcome = 1 if product > 0 else 0
+			prediction = np.append(prediction,outcome)
+		return prediction
 
 class MLP:
 	def __init__(self, w1, b1, w2, b2, lr):
