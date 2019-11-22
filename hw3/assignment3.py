@@ -367,23 +367,35 @@ class FCLayer:
 		self.w = w	#Each column represents all the weights going into an output node
 		self.b = b
 
-	def forward(self, input):
+	def forward(self, _input):
 		#Write forward pass here
-		return None
+		self.x = _input
+		return np.dot(self.x,self.w)+self.b
 
 	def backward(self, gradients):
 		#Write backward pass here
-		return None	
+		w_temp = np.dot(self.x.transpose(),gradients)
+		x_temp = np.dot(gradients,self.w.transpose())
+		self.w -= self.lr * w_temp
+		self.b -= self.lr * gradients
+		return x_temp	
 
 class Sigmoid:
 
 	def __init__(self):
 		None
 
-	def forward(self, input):
+	def sig(self,x):
+		return 1/(1+np.exp(-x))
+
+	def dervSig(self,x):
+		return x*(1-x)
+
+	def forward(self, _input):
 		#Write forward pass here
-		return None
+		self.sigmoid = np.array([self.sig(x) for x in _input])
+		return self.sigmoid
 
 	def backward(self, gradients):
 		#Write backward pass here
-		return None	
+		return gradients*np.array([self.dervSig(x) for x in self.sigmoid])

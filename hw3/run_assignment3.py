@@ -55,18 +55,18 @@ b = np.random.normal(0, .1, size=1)
 perceptron = models.Perceptron(w, b, lr)
 #MLP
 # lr = .0001
-# w1 = np.random.normal(0, .1, size=(X_train.shape[1], 10))
-# w2 = np.random.normal(0, .1, size=(10,1))
-# b1 = np.random.normal(0, .1, size=(1,10))
-# b2 = np.random.normal(0, .1, size=(1,1))
-# mlp = models.MLP(w1, b1, w2, b2, lr)
+w1 = np.random.normal(0, .1, size=(X_train.shape[1], 10))
+w2 = np.random.normal(0, .1, size=(10,1))
+b1 = np.random.normal(0, .1, size=(1,10))
+b2 = np.random.normal(0, .1, size=(1,1))
+mlp = models.MLP(w1, b1, w2, b2, lr)
 
 #Train
 steps = 100*y_train.size
 knn.train(X_train, y_train)
 id3.train(X_train, y_train)
 perceptron.train(X_train, y_train, steps)
-# mlp.train(X_train, y_train, steps)
+mlp.train(X_train, y_train, steps)
 
 #Check weights (For grading)
 # perceptron.w
@@ -88,7 +88,7 @@ def evaluate(solutions, real):
 # print(evaluate(solutions, y_test))
 # solutions = id3.predict(X_test)
 # print(evaluate(solutions, y_test))
-solutions = perceptron.predict(X_test)
-print(evaluate(solutions, y_test))
-# solutions = mlp.predict(X_test)
+# solutions = perceptron.predict(X_test)
 # print(evaluate(solutions, y_test))
+solutions = mlp.predict(X_test)
+print(evaluate(solutions, y_test))
