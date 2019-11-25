@@ -398,4 +398,8 @@ class Sigmoid:
 
 	def backward(self, gradients):
 		#Write backward pass here
-		return gradients * np.array([self.dervSig(x) for x in self.sigmoid])
+		# return gradients * np.array([self.dervSig(x) for x in self.sigmoid])
+		return gradients * self.sigmoid * (1 - self.sigmoid)
+
+
+
