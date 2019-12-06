@@ -516,7 +516,7 @@ class Game:
     """
     currentIterations=1000
     maxIterations=1000
-    timeLimit=120
+    timeLimit= 30
     totalFoodAndCapsules=0
     movementHistory=[]
     notLossButTime = False

@@ -17,21 +17,7 @@ from game import Agent
 import random
 import math
 
-def admissibleHeuristic(state,orgState):
-    if state.isLose():
-        return 10000.0;
-    # print("food number",state.getNumFood(),"cap number",len(state.getCapsules()))
-    ans = len(state.getCapsules())*10
-    print("getCapsules pan", ans)
-    gain = state.getScore() - orgState.getScore()
-    print("gain pan",gain)
-    ans -= gain
-    pos = state.getPacmanPosition()
-    if pos in exploredMap:
-    	temp =  exploredMap[pos]*25
-        print("visited pan",temp)
-    	ans += temp
-    return ans
+
 
 exploredMap = {}
 
@@ -52,11 +38,17 @@ class CompetitionAgent(Agent):
         return;
 
     def f_score(self, state, actions, orgState):
-    	g_value = pow(1.1,len(actions))
-        print("g_value",g_value)
-        ans = g_value + admissibleHeuristic(state,orgState)
+        if state.isLose():
+            print "isLose"
+            return 10000.0
+        # print("food number",state.getNumFood(),"cap number",len(state.getCapsules()))
+        ans = len(state.getCapsules())
+        print("getCapsules pan", ans)
+        gain = (state.getScore() - orgState.getScore())/10
+        expGain = gain*pow(1/1.5,len(actions))
+        print("gain pan",gain,expGain)
+        ans -= expGain
         print("ans",ans)
-        print "\n"
     	return ans
 
     def compareAns(self, t_node, res):
@@ -120,7 +112,8 @@ class CompetitionAgent(Agent):
                     continue
                 if n not in openSet:
                     openSet.append(n)
-
+        print ans.score
+        print "\n"          
         if ans.actions != []:
             nowAction = ans.actions[0]
         else:
